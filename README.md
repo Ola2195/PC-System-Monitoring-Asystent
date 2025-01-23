@@ -139,3 +139,10 @@ Aplikacja korzysta z bazy danych PostgreSQL do przechowywania statycznych i dyna
 - **`/disks`** - Informacje o dyskach
 - **`/network`** - Informacje o sieci
 - **`/config`** - Konfiguracja systemu alarmowego
+
+---
+
+## Zrzut ekranu
+Poniżej przedstawiam zrzut ekranu strony głównej z aplikacji:
+
+![Zrzut ekranu](screenshot.png)
