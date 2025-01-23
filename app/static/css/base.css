@@ -1,0 +1,154 @@
+body {
+    font-size: .875rem;
+  }
+  
+  .feather {
+    width: 16px;
+    height: 16px;
+  }
+  
+  /*
+   * Sidebar
+   */
+  
+  .sidebar {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 100;
+    padding: 48px 0 0;
+    box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
+  }
+  
+  @media (max-width: 767.98px) {
+    .sidebar {
+      top: 5rem;
+    }
+  }
+  
+  .sidebar-sticky {
+    height: calc(100vh - 60px);
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+  
+  .sidebar .nav-link {
+    font-weight: 500;
+    color: #333;
+  }
+  
+  .sidebar .nav-link .feather {
+    margin-right: 4px;
+    color: #727272;
+  }
+  
+  .sidebar .nav-link.active {
+    color: #2470dc;
+  }
+  
+  .sidebar .nav-link:hover .feather,
+  .sidebar .nav-link.active .feather {
+    color: inherit;
+  }
+  
+  .sidebar-heading {
+    font-size: .75rem;
+  }
+  
+  /*
+   * Navbar
+   */
+  
+  .navbar-brand {
+    padding-top: .75rem;
+    padding-bottom: .75rem;
+    height: 100%;
+  }
+  
+  .navbar .navbar-toggler {
+    top: .25rem;
+    right: 1rem;
+  }
+  
+  .navbar .form-control {
+    padding: .75rem 1rem;
+  }
+  
+  .form-control-dark {
+    color: #fff;
+    background-color: rgba(255, 255, 255, .1);
+    border-color: rgba(255, 255, 255, .1);
+  }
+  
+  .form-control-dark:focus {
+    border-color: transparent;
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, .25);
+  }
+
+  /*
+   * Alert popup window
+   */
+
+  #alert-container {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1050;
+  }
+
+  /*
+   * Configuration form
+   */
+  
+  .config-block {
+    border: 2px;
+    border-color: #ffffff;
+  }
+
+  .form-control {
+    background-color: #e2e2e2;
+    border-color: #929292;
+  }
+
+  .form-control:focus {
+    background-color: #d1e6fd;
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(38, 143, 255, 0.25);
+  }
+
+  .form-label {
+    font-weight: bold;
+  }
+
+  /*
+   * Processor gauge bar
+   */
+
+  .gauge-container {
+    position: relative;
+    width: 300px;
+  }
+
+  .gauge-bar {
+    position: absolute;
+    width: 100%;
+    height: 20px;
+    border-radius: 10px;
+    background: linear-gradient(to right, #28a745 50%, #ffc107 80%, #dc3545 100%);
+  }
+
+  .gauge-bar.inactive {
+    filter: brightness(0.4);
+  }
+
+  .gauge-pointer {
+    position: absolute;
+    width: 5px;
+    height: 26px;
+    background: #d8dee4;
+    top: -3px;
+    border: 1px solid #d8dee4;
+    border-radius: 5px;
+    transform: translateX(-50%);
+  }

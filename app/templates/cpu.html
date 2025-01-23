@@ -1,0 +1,231 @@
+{% extends "base.html" %}
+
+{% block head %} 
+    <title> PC MONITORING SYSTEM </title>
+{% endblock %}
+
+{% block pagetitle %} 
+<h3 class="text-white h3">Procesor</h3>
+{% endblock %}
+
+{% block body %}
+
+    <!-- Main Contents -->
+    <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+
+        <div class="row" style="padding-top: 10px;">
+
+            <!-- CPU Info Overview -->
+            <div class="col-12 mb-4">
+                <div class="card h-100 bg-dark text-white">
+                    <div class="card-body">
+                        <h5 class="text-center">Podstawowe informacje</h5>
+                        <table class="table table-hover text-left table-dark text-muted">
+                            <tr>
+                                <td scope="row">Rodzaj procesora:</td>
+                                <td id="cpu-processor-name"></td>
+                            </tr>
+                            <tr>
+                                <td scope="row">Architektura CPU:</td>
+                                <td id="cpu-architecture"></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CPU Performance Info -->
+            <div class="col-12 mb-4">
+                <div class="card h-100 bg-dark text-white">
+                    <div class="card-body">
+                        <h5 class="text-center">Wydajność</h5>
+                        <table class="table table-hover text-left table-dark text-muted">
+                            <tr>
+                                <td scope="row">Liczba rdzeni fizycznych:</td>
+                                <td id="cpu-count"></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td scope="row">Częstotliwość CPU:</td>
+                                <td id="cpu-frequency"></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td scope="row">Obciążenie CPU:</td>
+                                <td id="cpu-percent"></td>
+                                <td>
+                                    <div id="cpu-percent-gauge" class="gauge-container">
+                                        <div class="gauge-bar"></div>
+                                        <div class="gauge-pointer"></div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td scope="row">Temperatura CPU:</td>
+                                <td id="cpu-temperature"></td>
+                                <td>
+                                    <div id="cpu-temp-gauge" class="gauge-container">
+                                        <div class="gauge-bar"></div>
+                                        <div class="gauge-pointer"></div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CPU Stats -->
+            <div class="row">
+                <div class="col-lg-6 col-md-12 mb-4">
+                    <div class="card h-100 bg-dark text-white">
+                        <div class="card-body">
+                            <h5 class="text-center">Statystyki procesora</h5>
+                            <table class="table table-hover text-left table-dark text-muted">
+                                <tr>
+                                    <td scope="row">Przełączenia kontekstu:</td>
+                                    <td id="cpu-ctx-switches"></td>
+                                </tr>
+                                <tr>
+                                    <td scope="row">Przerwania sprzętowe:</td>
+                                    <td id="cpu-interrupts"></td>
+                                </tr>
+                                <tr>
+                                    <td scope="row">Przerwania programowe:</td>
+                                    <td id="cpu-soft-interrupts"></td>
+                                </tr>
+                                <tr>
+                                    <td scope="row">Wywołania systemowe:</td>
+                                    <td id="cpu-syscalls"></td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6 col-md-12 mb-4">
+                    <div class="card h-100 bg-dark text-white">
+                        <div class="card-body">
+                            <canvas id="cpuStatsChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+{% endblock %}
+
+{% block script %} 
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const ctx = document.getElementById('cpuStatsChart').getContext('2d');
+
+    const cpuStatsChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['Przełączenia kontekstu', 'Przerwania sprzętowe', 'Przerwania programowe', 'Wywołania systemowe'],
+            datasets: [{
+                label: 'Wartości statystyk',
+                data: [0, 0, 0, 0],
+                backgroundColor: [
+                    'rgba(75, 192, 192, 0.6)',
+                    'rgba(153, 102, 255, 0.6)',
+                    'rgba(255, 159, 64, 0.6)',
+                    'rgba(255, 99, 132, 0.6)'
+                ],
+                borderColor: [
+                    'rgba(75, 192, 192, 1)',
+                    'rgba(153, 102, 255, 1)',
+                    'rgba(255, 159, 64, 1)',
+                    'rgba(255, 99, 132, 1)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false },
+                tooltip: { enabled: true }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: { color: '#6c757d' },
+                    grid: { color: 'rgba(255, 255, 255, 0.175)' }
+                },
+                x: {
+                    ticks: { color: '#6c757d' },
+                    grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                }
+            }
+        }
+    });
+
+    function updateChart(chart, newData) {
+        chart.data.datasets[0].data = newData;
+        chart.update();
+    }
+
+    function updateGauge(selector, value) {
+        const pointer = document.querySelector(`${selector} .gauge-pointer`);
+        const bar = document.querySelector(`${selector} .gauge-bar`);
+
+        if (pointer) {
+            pointer.style.left = `${value}%`;
+        }
+
+        if (bar) {
+            if (value) {
+                bar.classList.remove('inactive');
+                pointer.style.display = 'block';
+            } else {
+                bar.classList.add('inactive');
+                pointer.style.display = 'none';
+            }
+        }
+    }
+
+    function updateIndexData() {
+        fetch('/api/cpu_data')
+            .then(response => response.json())
+            .then(data => {
+                const cpuInfo = data.cpu_info;
+
+                // CPU Overview
+                document.querySelector("#cpu-processor-name").innerText = cpuInfo.processor_name;
+                document.querySelector("#cpu-architecture").innerText = cpuInfo.architecture;
+                
+                // CPU Performance
+                document.querySelector("#cpu-count").innerText = cpuInfo.cpu_count;
+                document.querySelector("#cpu-frequency").innerText = `${cpuInfo.cpu_freq} Mhz`;
+                document.querySelector("#cpu-percent").innerText = `${cpuInfo.cpu_percent} %`;
+                updateGauge('#cpu-percent-gauge', cpuInfo.cpu_percent);
+                if(cpuInfo.cpu_temp)
+                    document.querySelector("#cpu-temperature").innerText = `${cpuInfo.cpu_temp} °C`;
+                else
+                    document.querySelector("#cpu-temperature").innerText = `N / A`;
+                updateGauge('#cpu-temp-gauge', cpuInfo.cpu_temp);
+
+                // CPU Stats
+                document.querySelector("#cpu-ctx-switches").innerText = cpuInfo.cpu_ctx_switches;
+                document.querySelector("#cpu-interrupts").innerText = cpuInfo.cpu_interrupts;
+                document.querySelector("#cpu-soft-interrupts").innerText = cpuInfo.cpu_soft_interrupts;
+                document.querySelector("#cpu-syscalls").innerText = cpuInfo.cpu_syscalls;
+                
+                // CPU Stats chart
+                const newStats = [
+                    cpuInfo.cpu_ctx_switches,
+                    cpuInfo.cpu_interrupts,
+                    cpuInfo.cpu_soft_interrupts,
+                    cpuInfo.cpu_syscalls
+                ];
+                updateChart(cpuStatsChart, newStats);
+            })
+            .catch(error => console.error('Error fetching index data:', error));
+    }
+
+    setInterval(updateIndexData, 5000);
+    updateIndexData();
+</script>
+{% endblock %}

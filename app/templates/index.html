@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+
+{% block head %} 
+    <title> PC MONITORING SYSTEM </title>
+{% endblock %}
+
+{% block pagetitle %} 
+<h3 class="text-white h3">Informacje Podstawowe</h3>
+{% endblock %}
+
+{% block body %}
+
+    <!-- Main Contents -->
+    <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+
+        <div class="row" style="padding-top: 10px;">
+
+            <!-- Main Information -->
+            <div class="col-sm-12 col-lg-6 mb-4">
+                <div class="card h-100 bg-dark text-white">
+                    <div class="d-flex card-header justify-content-between">
+                        <h5>Główne informacje</h5>
+                        <h5>
+                            {% if context.platform_info['os_name'] != 'unknown' %}
+                                <i class="fa-brands fa-{{context.platform_info['os_name']}} text-info"></i>
+                            {% else %}
+                                <i class="fa-brands fa-question text-info"></i>
+                            {% endif %}
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-hover text-left table-dark text-muted">
+                            <tr>
+                                <td scope="row"> Nazwa hosta: </td>
+                                <td id="platform-node-name"></td>
+                            </tr>
+                            <tr>
+                                <td scope="row"> System operacyjny: </td>
+                                <td id="platform-os-name"></td>
+                                
+                            </tr>
+                            <tr>
+                                <td scope="row"> Wersja OS: </td>
+                                <td id="platform-vos"></td>
+                            </tr>
+                            <tr>
+                                <td scope="row"> Architektura: </td>
+                                <td id="platform-arch"></td>
+                            </tr>
+                            <tr>
+                                <td scope="row"> Procesor: </td>
+                                <td id="platform-processor"></td>
+                            </tr>
+                            <tr>
+                                <td scope="row"> Czas działania: </td>
+                                <td id="platform-uptime"></td>
+                                <td></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- User Information -->
+            <div class="col-sm-12 col-lg-6 mb-4">
+                <div class="card h-100 bg-dark text-white">
+                    <div class="d-flex card-header justify-content-between">
+                        <h5>Użytkownicy</h5>
+                        <h5>
+                            <i class="fa-solid fa-user text-primary"></i>
+                        </h5>
+                    </div>
+                    <div class="card-body table-responsive">
+                        <table class="table table-hover text-left table-dark text-muted">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Nazwa użytkownika</th>
+                                    <th scope="col">Terminal</th>
+                                    <th scope="col">Host</th>
+                                    <th scope="col">Rozpoczęto</th>
+                                    <th scope="col">PID</th>
+                                </tr>
+                            </thead>
+                            <tbody id="user-info">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Power Information -->
+            <div class="col-sm-12 col-lg-6 mb-4">
+                <div class="card h-100 bg-dark text-white ">
+                    <div class="d-flex card-header justify-content-between">
+                        <h5>Zasilanie</h5>
+                        <h5><i class="power-icons fa-solid"></i></h5>
+                    </div>
+                    <div class="card-body d-flex align-items-center justify-content-center">
+                        <div class="row text-center align-middle" style="font-size: 5rem;">
+                            <i class="power-icons col fa-solid"></i>
+                            <span class="power-percent col h1"></span>                                    
+                        </div>
+                        <table class="table table-hover text-left table-dark text-muted m-2">
+                            <tr>
+                                <td scope="row"> Procent: </td>
+                                <td class="power-percent"></td>
+                            </tr>
+                            <tr>
+                                <td scope="row"> Czas: </td>
+                                <td id="power-time"></td>
+                            </tr>
+                            <tr>
+                                <td scope="row"> Źródło zasilania: </td>
+                                <td id="power-source"></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+{% endblock %}
+
+{% block script %} 
+<script>
+    function updateIndexData() {
+        fetch('/api/index_data')
+            .then(response => response.json())
+            .then(data => {
+                // Main Info
+                const platformInfo = data.platform_info;
+                document.querySelector("#platform-node-name").innerText = platformInfo.node_name;
+                document.querySelector("#platform-os-name").innerText = platformInfo.os_name === 'apple' ? 'macOS' : platformInfo.os_name;
+                document.querySelector("#platform-vos").innerText = `${platformInfo.system_name} v${platformInfo.release_version}`;
+                document.querySelector("#platform-arch").innerText = platformInfo.architecture;
+                document.querySelector("#platform-processor").innerText = platformInfo.processor_type;
+                document.querySelector("#platform-uptime").innerText = platformInfo.boot_time;
+
+                // User Info
+                const userInfo = data.user_info;
+                const userTableBody = document.querySelector("#user-info");
+                userTableBody.innerHTML = "";
+                Object.values(userInfo).forEach(user => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${user.name}</td>
+                        <td>${user.terminal}</td>
+                        <td>${user.host}</td>
+                        <td>${new Date(user.started).toLocaleString()}</td>
+                        <td>${user.pid}</td>
+                    `;
+                    userTableBody.appendChild(row);
+                });
+
+                // Power Info
+                const powerInfo = data.power_info;
+                const percentElements = document.querySelectorAll(".power-percent");
+                percentElements.forEach(element => {
+                    element.classList.remove("text-danger", "text-warning", "text-success");
+                    element.innerText = `${powerInfo.percent}%`;
+                    if(powerInfo.percent <= 25)
+                        element.classList.add("text-danger");
+                    else if(powerInfo.percent <= 50)
+                        element.classList.add("text-warning");
+                    else
+                        element.classList.add("text-success");
+                });
+                const iconsElements = document.querySelectorAll(".power-icons");
+                iconsElements.forEach(element => {
+                    element.classList.remove("fa-battery-quarter", "fa-battery-half", "fa-battery-three-quarters", "fa-plug-circle-bolt");
+                    element.classList.remove("text-danger", "text-warning", "text-success");
+                    if (powerInfo.power_source === "Battery Power") {
+                        if(powerInfo.percent <= 25)
+                            element.classList.add("fa-battery-quarter", "text-danger");
+                        else if(powerInfo.percent <= 50)
+                            element.classList.add("fa-battery-half", "text-warning");
+                        else
+                            element.classList.add("fa-battery-three-quarters", "text-success");
+                    } else {
+                        element.classList.add("fa-plug-circle-bolt", "text-success");
+                    }
+                });
+                document.querySelector("#power-time").innerText = powerInfo.time_remaining;
+                document.querySelector("#power-source").innerText = powerInfo.power_source === 'Battery Power' ? 'Zasilanie z baterii' : 'Zasilanie z sieci';
+            })
+            .catch(error => console.error('Error fetching index data:', error));
+    }
+
+    setInterval(updateIndexData, 5000);
+    updateIndexData();
+</script>
+{% endblock %}

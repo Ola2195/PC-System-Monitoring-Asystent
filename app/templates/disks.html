@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+
+{% block head %} 
+    <title> PC MONITORING SYSTEM </title>
+{% endblock %}
+
+{% block pagetitle %} 
+<h3 class="text-white h3">Dyski</h3>
+{% endblock %}
+
+{% block body %}
+
+    <!-- Main Contents -->
+    <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+
+        <div class="row" style="padding-top: 10px;">
+
+            <!-- Disks Icons -->
+            <div class="col-sm-12">
+                <div class="card h-100 bg-dark text-white">
+                    <div class="card-body">
+                        <div class="row justify-content-center">
+                            <div class="col-12">
+                                <div id="disks-icons" class="d-flex flex-wrap justify-content-center align-items-center"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Disks Information -->
+            <div class="col-sm-12">
+                <div class="card h-100 bg-dark text-white">
+                    <div class="card-body table-responsive">
+                        <table class="table table-hover text-left table-dark text-muted">
+                            <thead>
+                                <tr>
+                                    <th scope="col"></th>
+                                    <th scope="col">Urządzenie</th>
+                                    <th scope="col">Zamontowany</th>
+                                    <th scope="col">Typ</th>
+                                    <th scope="col">System plików</th>
+                                    <th scope="col">Całkowita pojemność</th>
+                                    <th scope="col">Używana przestrzeń</th>
+                                    <th scope="col">Wolna przestrzeń</th>
+                                    <th scope="col">Wykres</th>
+                                </tr>
+                            </thead>
+                            <tbody id="disks-info"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+{% endblock %}
+
+{% block script %} 
+<script src="https://cdn.jsdelivr.net/npm/masonry-layout@4.2.2/dist/masonry.pkgd.min.js" integrity="sha384-GNFwBvfVxBkLMJpYMOABq3c+d3KnQxudP/mGPkzpZSTYykLBNsZEnG2D9G/X/+7D" crossorigin="anonymous" async></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    function updateDiskInfo() {
+        fetch('/api/disks_data')
+            .then(response => response.json())
+            .then(data => {
+                const disksIconsContainer = document.querySelector("#disks-icons");
+                disksIconsContainer.innerHTML = "";
+                const disksTableBody = document.querySelector("#disks-info");
+                disksTableBody.innerHTML = "";
+
+        
+                Object.values(data.disk_info).forEach((disk, index) => {
+                    // Disks Icons
+                    const iconContainer = document.createElement('div');
+                    iconContainer.classList.add('disk-icon-container', 'text-center', 'px-2', 'mb-4');
+                    iconContainer.innerHTML = `
+                        <span class="${getStatusClass(disk.status, disk.used_percentage)}">
+                            <div class="d-flex align-items-center">
+                                <div class="h2 mx-3">
+                                    ${getDiskIcon(disk.status, disk.type)}
+                                </div>
+                                <div>
+                                    <p class="text-start fw-bold m-0 pe-none">${disk.device}</p>
+                                    ${disk.status === 'Online' ? `<p class="text-start fw-bold m-0 pe-none">${disk.used_percentage} %</p>` : `<p class="text-start fw-bold m-0">${disk.message}</p>`}
+                                </div>
+                            </div>
+                        </span>
+                    `;
+                    disksIconsContainer.appendChild(iconContainer);
+
+                    // Disks Table
+                    let statusIcon;
+                    if (disk.status === 'Online') {
+                        statusIcon = '<i class="fa-solid fa-circle-check text-success"></i>';
+                    } else if (disk.status === 'Offline') {
+                        statusIcon = '<i class="fa-solid fa-circle-xmark text-danger"></i>';
+                    } else {
+                        statusIcon = '<i class="fa-solid fa-circle-exclamation text-warning"></i>';
+                    }
+
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td class="text-center"> ${statusIcon} </td>
+                        <td> ${disk.device} </td>
+                        <td> ${disk.mounted} </td>
+                        <td> ${disk.type} </td>
+                        <td> ${disk.fstype} </td>
+                        <td> ${disk.total} </td>
+                        <td> ${disk.used} </td>
+                        <td> ${disk.free} </td>
+                        <td>
+                            <canvas id="diskBarChart${index}" width="150" height="30"></canvas>
+                        </td>
+                    `;
+                    disksTableBody.appendChild(row);
+
+                    // Disk Bar Char
+                    const ctx = document.getElementById(`diskBarChart${index}`).getContext('2d');
+                    new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: [''],
+                            datasets: [{
+                                data: [disk.used_percentage],
+                                backgroundColor: ['#dc3545'],
+                                borderWidth: 0,
+                            },
+                            {
+                                data: [100 - disk.used_percentage],
+                                backgroundColor: ['#28a745'],
+                                borderWidth: 0,
+                            }]
+                        },
+                        options: {
+                            indexAxis: 'y',
+                            plugins: {
+                                legend: {
+                                    display: false,
+                                }
+                            },
+                            responsive: false,
+                            animation: false,
+                            scales: {
+                                x: {
+                                    stacked: true,
+                                    max: 100,
+                                    ticks: {
+                                        display: false
+                                    }
+                                },
+                                y: {
+                                    stacked: true,
+                                    ticks: {
+                                        display: false
+                                    }
+                                }
+                            }
+                        }
+                    });
+                });
+            })
+            .catch(error => console.error('Error fetching disk data:', error));
+    }
+
+    function getStatusClass(status, usedPercentage) {
+        if (status === 'Offline') {
+            return 'link-danger';
+        } else if (usedPercentage > 80) {
+            return 'link-danger';
+        } else if (usedPercentage > 50) {
+            return 'link-warning';
+        } else if (status === 'Error') {
+            return 'link-warning';
+        } else {
+            return 'link-success';
+        }
+    }
+
+    function getDiskIcon(status, type) {
+        if (status !== 'Online') {
+            return '<i class="fa-solid fa-inbox fa-3x"></i>';
+        } else if (type.includes('Wbudowany')) {
+            return '<i class="fa-solid fa-hdd fa-3x"></i>';
+        } else {
+            return '<i class="fa-solid fa-brands fa-usb fa-3x"></i>';
+        }
+    }
+
+    setInterval(updateDiskInfo, 5000);
+    updateDiskInfo();
+</script>
+
+{% endblock %}

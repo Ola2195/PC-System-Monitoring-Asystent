@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block head %} 
+    <title> PC MONITORING SYSTEM </title>
+{% endblock %}
+
+{% block pagetitle %} 
+<h3 class="text-white h3">Sieci</h3>
+{% endblock %}
+
+{% block body %}
+
+    <!-- Main Contents -->
+    <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+
+        <div class="row" style="padding-top: 10px;">
+
+            <!-- Network Information -->
+            <div class="col-sm-12">
+                <div class="card h-100 bg-dark text-white">
+
+                    <div class="card-body table-responsive">
+                        <table class="table table-hover text-left table-dark text-muted">
+                            <thead>
+                                <tr>
+                                    <th class="text-center">Typ</th>
+                                    <th>Interfejs</th>
+                                    <th>Status</th>
+                                    <th>Adres IP</th>
+                                    <th>Prędkość (Mbps)</th>
+                                    <th>Wysłane</th>
+                                    <th>Odebrane</th>
+                                </tr>
+                            </thead>
+                            <tbody id="network-info">
+                                <!-- Dynamic network info will be inserted here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+{% endblock %}
+
+{% block script %} 
+<script src="https://cdn.jsdelivr.net/npm/masonry-layout@4.2.2/dist/masonry.pkgd.min.js" integrity="sha384-GNFwBvfVxBkLMJpYMOABq3c+d3KnQxudP/mGPkzpZSTYykLBNsZEnG2D9G/X/+7D" crossorigin="anonymous" async></script>
+
+<script>
+    function updateNetworkInfo() {
+        fetch('/api/network_data')
+            .then(response => response.json())
+            .then(data => {
+                const networkTableBody = document.querySelector("#network-info");
+                networkTableBody.innerHTML = "";
+
+                Object.values(data.network_info).forEach((nic, index) => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td class="text-center">
+                            ${getNetworkIcon(nic.is_up, nic.name)}
+                        </td>
+                        <td>${nic.name}</td>
+                        <td>${nic.is_up ? '<span class="text-success">Online</span>' : '<span class="text-danger">Offline</span>'}</td>
+                        <td>${nic.ip_address}</td>
+                        <td>${nic.speed !== 'N/A' ? nic.speed : 'N/A'}</td>
+                        <td>${nic.sent_bytes}</td>
+                        <td>${nic.received_bytes}</td>
+                    `;
+                    networkTableBody.appendChild(row);
+                });
+            })
+            .catch(error => console.error('Error fetching network data:', error));
+    }
+
+    function getNetworkIcon(isUp, nicName) {
+        let textColor = "text-success"
+        if (!isUp)
+            textColor = "text-danger"
+            if (nicName.includes('Ethernet')) {
+                return `<i class="h4 fa-solid fa-ethernet ${textColor}"></i>`;
+            } else if (nicName.includes('Wi-Fi')) {
+                return `<i class="h4 fa-solid fa-wifi ${textColor}"></i>`;
+            } else if (nicName.includes('Bluetooth')) {
+                return `<i class="h4 fa-brands fa-bluetooth ${textColor}"></i>`;
+            } else {
+                return `<i class="h4 fa-solid fa-network-wired ${textColor}"></i>`;
+    }
+    }
+
+    setInterval(updateNetworkInfo, 5000);
+    updateNetworkInfo();
+</script>
+
+{% endblock %}

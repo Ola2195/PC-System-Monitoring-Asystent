@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+
+{% block head %} 
+    <title> PC MONITORING SYSTEM </title>
+{% endblock %}
+
+{% block pagetitle %} 
+<h3 class="text-white h3">Konfiguracja Alarmów</h3>
+{% endblock %}
+
+{% block body %}
+<main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+
+    <div class="column text-muted" style="padding-top: 10px;">
+        <form method="POST" class="container">
+            <div class="row">
+                <!-- Uptime Configuration -->
+                <div class="col-md-6">
+                    <div class="border border-primary rounded p-3 mb-3">
+                        <h5 class="text-primary">Czas pracy systemu</h5>
+                        <div class="mb-3 row">
+                            <label for="uptime_warning" class="col-sm-7 col-form-label">Czas pracy systemu - Ostrzeżenie (dni):</label>
+                            <div class="col-sm-5">
+                                <input type="number" class="form-control" id="uptime_warning" name="uptime_warning" value="{{ config['uptime']['warning_days'] }}">
+                            </div>
+                        </div>
+                        <div class="mb-3 row">
+                            <label for="uptime_danger" class="col-sm-7 col-form-label">Czas pracy systemu - Alarm (dni):</label>
+                            <div class="col-sm-5">
+                                <input type="number" class="form-control" id="uptime_danger" name="uptime_danger" value="{{ config['uptime']['danger_days'] }}">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+        
+                <!-- RAM Configuration -->
+                <div class="col-md-6">
+                    <div class="border border-primary rounded p-3 mb-3">
+                        <h5 class="text-primary">RAM</h5>
+                        <div class="mb-3 row">
+                            <label for="ram_usage_high" class="col-sm-7 col-form-label">Zbyt wysokie użycie RAM (%):</label>
+                            <div class="col-sm-5">
+                                <input type="number" class="form-control" id="ram_usage_high" name="ram_usage_high" value="{{ config['ram']['danger_percent'] }}">
+                            </div>
+                        </div>
+                        <div class="mb-3 row">
+                            <label for="ram_usage_warning" class="col-sm-7 col-form-label">Wysokie użycie RAM (%) - Ostrzeżenie:</label>
+                            <div class="col-sm-5">
+                                <input type="number" class="form-control" id="ram_usage_warning" name="ram_usage_warning" value="{{ config['ram']['warning_percent'] }}">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        
+            <div class="row">
+                <!-- Battery Configuration -->
+                <div class="col-md-6">
+                    <div class="border border-primary rounded p-3 mb-3">
+                        <h5 class="text-primary">Bateria</h5>
+                        <div class="mb-3 row">
+                            <label for="battery_low" class="col-sm-7 col-form-label">Poziom baterii poniżej (%):</label>
+                            <div class="col-sm-5">
+                                <input type="number" class="form-control" id="battery_low" name="battery_low" value="{{ config['battery']['danger_percent'] }}">
+                            </div>
+                        </div>
+                        <div class="mb-3 row">
+                            <label for="battery_warning" class="col-sm-7 col-form-label">Poziom baterii - Ostrzeżenie (%):</label>
+                            <div class="col-sm-5">
+                                <input type="number" class="form-control" id="battery_warning" name="battery_warning" value="{{ config['battery']['warning_percent'] }}">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+        
+                <!-- GPU Configuration -->
+                <div class="col-md-6">
+                    <div class="border border-primary rounded p-3 mb-3">
+                        <h5 class="text-primary">GPU</h5>
+                        <div class="mb-3 row">
+                            <label for="gpu_warning" class="col-sm-7 col-form-label">Temperatura GPU - Ostrzeżenie (°C):</label>
+                            <div class="col-sm-5">
+                                <input type="number" class="form-control" id="gpu_warning" name="gpu_warning" value="{{ config['gpu']['warning_temp'] }}">
+                            </div>
+                        </div>
+                        <div class="mb-3 row">
+                            <label for="gpu_danger" class="col-sm-7 col-form-label">Temperatura GPU - Alarm (°C):</label>
+                            <div class="col-sm-5">
+                                <input type="number" class="form-control" id="gpu_danger" name="gpu_danger" value="{{ config['gpu']['danger_temp'] }}">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        
+            <div class="row">
+                <!-- CPU Configuration -->
+                <div class="col-md-6">
+                    <div class="border border-primary rounded p-3 mb-3">
+                        <h5 class="text-primary">CPU</h5>
+                        <div class="mb-3 row">
+                            <label for="cpu_temp_high" class="col-sm-7 col-form-label">Zbyt wysoka temperatura CPU (°C):</label>
+                            <div class="col-sm-5">
+                                <input type="number" class="form-control" id="cpu_temp_high" name="cpu_temp_high" value="{{ config['cpu']['danger_temp'] }}">
+                            </div>
+                        </div>
+                        <div class="mb-3 row">
+                            <label for="cpu_temp_warning" class="col-sm-7 col-form-label">Wysoka temperatura CPU (°C) - Ostrzeżenie:</label>
+                            <div class="col-sm-5">
+                                <input type="number" class="form-control" id="cpu_temp_warning" name="cpu_temp_warning" value="{{ config['cpu']['warning_temp'] }}">
+                            </div>
+                        </div>
+                        <div class="mb-3 row">
+                            <label for="cpu_usage_high" class="col-sm-7 col-form-label">Zbyt wysokie użycie CPU (%):</label>
+                            <div class="col-sm-5">
+                                <input type="number" class="form-control" id="cpu_usage_high" name="cpu_usage_high" value="{{ config['cpu']['danger_percent'] }}">
+                            </div>
+                        </div>
+                        <div class="mb-3 row">
+                            <label for="cpu_usage_warning" class="col-sm-7 col-form-label">Wysokie użycie CPU (%) - Ostrzeżenie:</label>
+                            <div class="col-sm-5">
+                                <input type="number" class="form-control" id="cpu_usage_warning" name="cpu_usage_warning" value="{{ config['cpu']['warning_percent'] }}">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                <!-- Disk Configuration -->
+                <div class="col-md-6">
+                    <div class="border border-primary rounded p-3 mb-3">
+                        <h5 class="text-primary">Dysk</h5>
+                        <div class="mb-3 row">
+                            <label for="disk_warning" class="col-sm-7 col-form-label">Poziom zajętości dysku - Ostrzeżenie (%):</label>
+                            <div class="col-sm-5">
+                                <input type="number" class="form-control" id="disk_warning" name="disk_warning" value="{{ config['disk']['warning_percent'] }}">
+                            </div>
+                        </div>
+                        <div class="mb-3 row">
+                            <label for="disk_danger" class="col-sm-7 col-form-label">Poziom zajętości dysku - Alarm (%):</label>
+                            <div class="col-sm-5">
+                                <input type="number" class="form-control" id="disk_danger" name="disk_danger" value="{{ config['disk']['danger_percent'] }}">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        
+            <div class="row mb-5">
+                <!-- Submit Button -->
+                <div class="col-12 text-center">
+                    <button type="submit" class="btn btn-primary">Zapisz zmiany</button>
+                </div>
+            </div>
+        </form>        
+        
+    </div>
+
+</main>
+{% endblock %}

@@ -1,0 +1,9 @@
+Flask==2.3.2
+Flask-WTF==1.1.1
+Flask-Bootstrap==3.3.7.1
+SQLAlchemy==2.0.9
+psycopg2-binary==2.9.6
+psutil==5.9.5
+py-cpuinfo==9.0.0
+matplotlib==3.8.0
+GPUtil==1.4.0

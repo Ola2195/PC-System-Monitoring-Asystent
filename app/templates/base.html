@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="pl">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-Zenh87qX5JnK2Jl0vWa8Ck2rdkQ2Bzep5IDxbcnCeuOxjzrPF/et3URy9Bv1WTRi" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" integrity="sha512-xh6O/CkQoPOWDdYTDqeRdPCVd1SpvCA9XXcUnZS2FmJNp1coAFzvtCN9BmamE+4aHK8yyUHUSCcJHgXloTyT2A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+        {% block head %} {% endblock %}
+    </head>
+    <body class="bg-dark">
+        <!-- Top Navigation Bar-->
+        <header class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-2 shadow">
+            <a class="navbar-brand d-none d-md-block col-md-3 col-lg-2 me-0 px-3 fs-6"><i class="fa-solid fa-desktop"></i> PC Asystent</a>
+            <button class="navbar-toggler position-absolute d-md-none collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="text-center w-100">
+                {% block pagetitle %} {% endblock %}
+            </div>
+        </header>
+
+        <!-- Contents -->
+        <div class="container-fluid">
+            <div class="row">
+
+                <!-- Side Navigation Bar-->
+                <div class="collapse d-md-block sidebar col-md-3 col-lg-2 position-sticky pt-3 text-bg-dark" id="sidebarMenu">
+                    <div class="nav h-100 flex-column mb-auto">
+                        <ul class="nav nav-pills flex-column mb-auto">
+                            <li class="nav-item">
+                                <a href="{{ url_for('index') }}" class="nav-link text-white {% if request.path == '/' %} active {% endif %}" aria-current="page">
+                                    <i class="fa-solid fa-house"></i>
+                                    Informacje Podstawowe
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ url_for('cpu') }}" class="nav-link text-white {% if request.path.split('/')[1] == 'cpu' %} active {% endif %}">
+                                    <i class="fa-solid fa-microchip"></i>
+                                    Procesor
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ url_for('ram') }}" class="nav-link text-white {% if request.path.split('/')[1] == 'ram' %} active {% endif %}">
+                                    <i class="fa-solid fa-memory"></i>
+                                    Pamięć RAM
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ url_for('gpu') }}" class="nav-link text-white {% if request.path.split('/')[1] == 'gpu' %} active {% endif %}">
+                                    <i class="fa-solid fa-cogs"></i>
+                                    Karta Graficzna
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ url_for('disks') }}" class="nav-link text-white {% if request.path.split('/')[1] == 'disks' %} active {% endif %}">
+                                    <i class="fa-solid fa-compact-disc"></i>
+                                    Dyski
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ url_for('network') }}" class="nav-link text-white {% if request.path.split('/')[1] == 'network' %} active {% endif %}">
+                                    <i class="fa-solid fa-network-wired"></i>
+                                    Sieci
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ url_for('config') }}" class="nav-link text-white">
+                                    <i class="fa-solid fa-cogs"></i>
+                                    Konfiguracja
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div id="alert-container" class="col-5 col-lg-3"></div>
+
+                {% block body %} {% endblock %}
+                
+            </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-OERcA2EqjJCMA+/3y+gxIOqMEjwtxJY7qPCqsdltbNJuaOe923+mo//f6V8Qbsw3" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/masonry-layout@4.2.2/dist/masonry.pkgd.min.js" integrity="sha384-GNFwBvfVxBkLMJpYMOABq3c+d3KnQxudP/mGPkzpZSTYykLBNsZEnG2D9G/X/+7D" crossorigin="anonymous" async></script>    
+
+        <script>
+            let config = {};
+
+            fetch('/api/config')
+                .then(response => response.json())
+                .then(data => {
+                    config = data;
+                    updateAllData();
+                })
+                .catch(error => console.error('Error fetching configuration: ', error));
+
+            function updateAllData() {
+                fetch('/api/main_data')
+                    .then(response => response.json())
+                    .then(data => {
+                        const alerts = [];
+
+                        // Up time alert
+                        if (data.platform_info.boot_time) {
+                            const regex = /(\d+)\s+days?,\s+(\d+):(\d+):(\d+\.\d+)/;
+                            match = data.platform_info.boot_time.match(regex);
+                            if (match)
+                                days = parseInt(match[1], 10);
+                            if (days >= config.uptime.danger_days) {
+                                alerts.push({
+                                    type: 'danger',
+                                    message: `Czas pracy systemu przekroczył ${days} dni!`
+                                });
+                            } else if (days >= config.uptime.warning_days) {
+                                alerts.push({
+                                    type: 'warning',
+                                    message: `Czas pracy systemu przekroczył ${days} dni!`
+                                });
+                            }
+                        }
+
+                        // Power alert
+                        if (data.power_info.percent) {
+                            if (data.power_info.percent < config.battery.danger_percent) {
+                                alerts.push({
+                                    type: 'danger',
+                                    message: `Poziom baterii poniżej ${config.battery.danger_percent}%!`
+                                });
+                            } else if (data.power_info.percent < config.battery.warning_percent) {
+                                alerts.push({
+                                    type: 'warning',
+                                    message: `Poziom baterii poniżej ${config.battery.warning_percent}%!`
+                                });
+                            }
+                        }
+
+                        // CPU percent alert
+                        if (data.cpu_info.cpu_percent) {
+                            if (data.cpu_info.cpu_percent > config.cpu.danger_percent) {
+                                alerts.push({
+                                    type: 'danger',
+                                    message: `Zbyt duże przeciążenie procesora! (${data.cpu_info.cpu_percent}%)`
+                                });
+                            } else if (data.cpu_info.cpu_percent > config.cpu.warning_percent) {
+                                alerts.push({
+                                    type: 'warning',
+                                    message: `Zbyt duże przeciążenie procesora! (${data.cpu_info.cpu_percent}%)`
+                                });
+                            }
+                        }
+
+                        // CPU temperature alert
+                        if (data.cpu_info.cpu_temp) {
+                            if (data.cpu_info.cpu_temp > config.cpu.danger_temp) {
+                                alerts.push({
+                                    type: 'danger',
+                                    message: `Zbyt wysoka temperatura CPU! (${data.cpu_info.cpu_temp}°C)`
+                                });
+                            } else if (data.cpu_info.cpu_temp > config.cpu.warning_temp) {
+                                alerts.push({
+                                    type: 'warning',
+                                    message: `Zbyt wysoka temperatura CPU! (${data.cpu_info.cpu_temp}°C)`
+                                });
+                            }
+                        }
+
+                        // GPU temperature alert
+                        if (data.gpu_info.temp) {
+                            if (data.gpu_info.temp > config.gpu.danger_temp) {
+                                alerts.push({
+                                    type: 'danger',
+                                    message: `Zbyt wysoka temperatura GPU! (${data.gpu_info.temp}°C)`
+                                });
+                            } else if (data.gpu_info.temp > config.gpu.warning_temp) {
+                                alerts.push({
+                                    type: 'warning',
+                                    message: `Zbyt wysoka temperatura GPU! (${data.gpu_info.temp}°C)`
+                                });
+                            }
+                        }
+
+                        // RAM alert
+                        if (data.memory_info.svem_percent > config.ram.danger_percent) {
+                            alerts.push({
+                                type: 'danger',
+                                message: `Użycie pamięci RAM zbyt wysokie! (${data.memory_info.svem_percent}%)`
+                            });
+                        } else if (data.memory_info.svem_percent > config.ram.warning_percent) {
+                            alerts.push({
+                                type: 'warning',
+                                message: `Użycie pamięci RAM zbyt wysokie! (${data.memory_info.svem_percent}%)`
+                            });
+                        }
+
+                        // Disks alerts
+                        Object.values(data.disk_info).forEach(disk => {
+                            if (disk.used_percentage > config.disk.danger_percent) {
+                                alerts.push({
+                                    type: 'danger',
+                                    message: `Dysk ${disk.device} zajęty w ${disk.used_percentage}%`
+                                });
+                            } else if (disk.used_percentage > config.disk.warning_percent) {
+                                alerts.push({
+                                    type: 'warning',
+                                    message: `Dysk ${disk.device} zajęty w ${disk.used_percentage}%`
+                                });
+                            }
+
+                            if (disk.status === 'Offline') {
+                                alerts.push({
+                                    type: 'danger',
+                                    message: `Dysk ${disk.device} : ${disk.message}`
+                                });
+                            } else if (disk.status === 'Error') {
+                                alerts.push({
+                                    type: 'warning',
+                                    message: `Dysk ${disk.device} : ${disk.message}`
+                                });
+                            }
+                        });
+        
+                        const alertContainer = document.getElementById('alert-container');
+                        alertContainer.innerHTML = '';
+                        alerts.forEach(alert => {
+                            const alertDiv = document.createElement('div');
+                            alertDiv.className = `alert alert-${alert.type} alert-dismissible fade show`;
+                            alertDiv.role = 'alert';
+                            alertDiv.innerHTML = `
+                                <strong>${alert.type === 'danger' ? 'ALERT' : 'WARNING'}</strong>: ${alert.message}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            `;
+                            alertContainer.appendChild(alertDiv);
+                        });
+                    })
+                    .catch(error => console.error('Error fetching data:', error));
+            }
+        
+            setInterval(updateAllData, 180000);
+        </script>
+        
+        {% block script %} {% endblock %}
+    </body>
+</html>

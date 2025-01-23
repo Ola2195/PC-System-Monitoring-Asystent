@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+
+{% block head %} 
+    <title>PC Monitoring System - GPU</title>
+{% endblock %}
+
+{% block pagetitle %} 
+<h3 class="text-white h3">Karta Graficzna</h3>
+{% endblock %}
+
+{% block body %}
+    <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+        <div class="row" style="padding-top: 10px;">
+
+            <!-- GPU Info -->
+            <div class="col-lg-6 col-md-12 mb-4">
+                <div class="card h-100 bg-dark text-white">
+                    <div class="d-flex card-header justify-content-between">
+                        <h5 class="text-center">Informacje o GPU</h5>
+                        <h5>
+                            <i class="fa-solid fa-cogs text-danger"></i>
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-hover text-left table-dark text-muted">
+                            <tr>
+                                <td scope="row">Model GPU:</td>
+                                <td id="gpu-model">N/A</td>
+                            </tr>
+                            <tr>
+                                <td scope="row">Użycie GPU:</td>
+                                <td id="gpu-usage">N/A</td>
+                            </tr>
+                            <tr>
+                                <td scope="row">Temperatura GPU:</td>
+                                <td id="gpu-temp">N/A</td>
+                            </tr>
+                            <tr>
+                                <td scope="row">Zużycie pamięci VRAM:</td>
+                                <td id="gpu-memory-used">N/A</td>
+                            </tr>
+                            <tr>
+                                <td scope="row">Przepustowość:</td>
+                                <td id="gpu-bandwidth">N/A</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6 col-md-12 mb-4">
+                <div class="card h-100 bg-dark text-white">
+                    <div class="card-body">
+                        <canvas id="gpuChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+{% endblock %}
+
+{% block script %} 
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    let gpuChart;
+
+    function createGpuChart(gpuInfo) {
+        const gpuCtx = document.getElementById('gpuChart').getContext('2d');
+        const data = {
+            labels: ['Użycie GPU', 'Pamięć VRAM', 'Przepustowość'],
+            datasets: [{
+                label: 'Wykorzystanie GPU',
+                data: [
+                    gpuInfo.usage,
+                    gpuInfo.memory_total > 0 ? (gpuInfo.memory_used / gpuInfo.memory_total) * 100 : 0,
+                    gpuInfo.bandwidth
+                ],
+                backgroundColor: [
+                    'rgba(75, 192, 192, 0.6)',
+                    'rgba(153, 102, 255, 0.6)',
+                    'rgba(255, 159, 64, 0.6)'
+                ],
+                borderColor: [
+                    'rgba(75, 192, 192, 1)',
+                    'rgba(153, 102, 255, 1)',
+                    'rgba(255, 159, 64, 1)'
+                ],
+                borderWidth: 1
+            }]
+        };
+
+        const options = {
+            responsive: true,
+            plugins: {
+                legend: { display: false },
+                tooltip: { enabled: true }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100,
+                    ticks: { color: '#6c757d' },
+                    grid: { color: 'rgba(255, 255, 255, 0.175)' }
+                },
+                x: {
+                    ticks: { color: '#6c757d' },
+                    grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                }
+            }
+        };
+
+        if (gpuChart) {
+            gpuChart.data = data;
+            gpuChart.update();
+        } else {
+            gpuChart = new Chart(gpuCtx, {
+                type: 'bar',
+                data: data,
+                options: options
+            });
+        }
+    }
+
+    function updateGpuInfo() {
+        fetch('/api/gpu_data')
+            .then(response => response.json())
+            .then(data => {
+                const gpuInfo = data.gpu_info;
+
+                document.getElementById('gpu-model').innerText = gpuInfo.model || 'N/A';
+                document.getElementById('gpu-usage').innerText = gpuInfo.usage ? `${gpuInfo.usage}%` : 'N/A';
+                document.getElementById('gpu-temp').innerText = gpuInfo.temp ? `${gpuInfo.temp}°C` : 'N/A';
+                document.getElementById('gpu-memory-used').innerText = gpuInfo.memory_used && gpuInfo.memory_total ?
+                    `${gpuInfo.memory_used} / ${gpuInfo.memory_total} MB` : 'N/A';
+                document.getElementById('gpu-bandwidth').innerText = gpuInfo.bandwidth ? `${gpuInfo.bandwidth}%` : 'N/A';
+
+                createGpuChart(gpuInfo);
+            })
+            .catch(error => console.error('Error fetching GPU data:', error));
+    }
+
+    setInterval(updateGpuInfo, 5000);
+    updateGpuInfo();
+</script>
+{% endblock %}

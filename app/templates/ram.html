@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+
+{% block head %} 
+    <title>PC Monitoring System - RAM</title>
+{% endblock %}
+
+{% block pagetitle %} 
+<h3 class="text-white h3">Pamięć RAM</h3>
+{% endblock %}
+
+{% block body %}
+<main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+    <div class="row" style="padding-top: 10px;">
+
+        <!-- Memory Information -->
+        <div class="col-lg-6 col-md-12 mb-4">
+            <div class="card h-100 bg-dark text-white">
+                <div class="d-flex card-header justify-content-between">
+                    <h5>Informacje o pamięci RAM</h5>
+                    <h5>
+                        <i class="fa-solid fa-memory text-warning"></i>
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-hover text-left table-dark text-muted">
+                        <tr>
+                            <td scope="row"> Całkowita pamięć RAM: </td>
+                            <td id="total-ram"></td>
+                        </tr>
+                        <tr>
+                            <td scope="row"> Używana: </td>
+                            <td id="used-ram"></td>
+                        </tr>
+                        <tr>
+                            <td scope="row"> Całkowita pamięć swap: </td>
+                            <td id="total-swap"></td>
+                        </tr>
+                        <tr>
+                            <td scope="row"> Używana swap: </td>
+                            <td id="used-swap"></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6 col-md-12 mb-4">
+            <div class="card h-100 bg-dark text-white">
+                <div class="card-body">
+                    <canvas id="ramChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</main>
+{% endblock %}
+
+{% block script %} 
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    let ramChart;
+
+    function createRamChart(memoryInfo) {
+        const ctx = document.getElementById('ramChart').getContext('2d');
+        const data = {
+            labels: ['Używana RAM', 'Wolna RAM', 'Używana Swap', 'Wolna Swap'],
+            datasets: [{
+                label: 'Wykorzystanie pamięci',
+                data: [
+                    memoryInfo.svem_percent,
+                    100 - memoryInfo.svem_percent,
+                    memoryInfo.smem_percent,
+                    100 - memoryInfo.smem_percent
+                ],
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.6)',
+                    'rgba(75, 192, 192, 0.6)',
+                    'rgba(255, 159, 64, 0.6)',
+                    'rgba(153, 102, 255, 0.6)'
+                ],
+                borderColor: [
+                    'rgba(255, 99, 132, 1)',
+                    'rgba(75, 192, 192, 1)',
+                    'rgba(255, 159, 64, 1)',
+                    'rgba(153, 102, 255, 1)'
+                ],
+                borderWidth: 1
+            }]
+        };
+        const options = {
+            responsive: false,
+            animation: false,
+            plugins: {
+                legend: {
+                    position: 'top'
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(tooltipItem) {
+                            return tooltipItem.label + ': ' + tooltipItem.raw.toFixed(2) + '%';
+                        }
+                    }
+                }
+            }
+        };
+
+        if (ramChart) {
+            ramChart.data = data;
+            ramChart.update();
+        } else {
+            console.log("New");
+            ramChart = new Chart(ctx, {
+                type: 'pie',
+                data: data,
+                options: options
+            });
+        }
+    }
+
+    function updateRamInfo() {
+        fetch('/api/ram_data')
+            .then(response => response.json())
+            .then(data => {
+                const memoryInfo = data.memory_info;
+
+                document.getElementById('total-ram').innerText = `${memoryInfo.svmem_total} MB`;
+                document.getElementById('used-ram').innerText = `${memoryInfo.svem_percent}%`;
+                document.getElementById('total-swap').innerText = `${memoryInfo.smem_total} MB`;
+                document.getElementById('used-swap').innerText = `${memoryInfo.smem_percent}%`;
+
+                createRamChart(memoryInfo);
+            })
+            .catch(error => console.error('Error fetching RAM data:', error));
+    }
+
+    setInterval(updateRamInfo, 5000);
+    updateRamInfo();
+</script>
+{% endblock %}

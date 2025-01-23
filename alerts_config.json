@@ -1,0 +1,28 @@
+{
+    "uptime": {
+        "warning_days": 5,
+        "danger_days": 7
+    },
+    "battery": {
+        "warning_percent": 50,
+        "danger_percent": 25
+    },
+    "cpu": {
+        "warning_percent": 50,
+        "danger_percent": 70,
+        "warning_temp": 75,
+        "danger_temp": 85
+    },
+    "gpu": {
+        "warning_temp": 75,
+        "danger_temp": 85
+    },
+    "ram": {
+        "warning_percent": 80,
+        "danger_percent": 90
+    },
+    "disk": {
+        "warning_percent": 80,
+        "danger_percent": 90
+    }
+}
