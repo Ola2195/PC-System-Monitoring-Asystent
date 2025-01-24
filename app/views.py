@@ -7,7 +7,7 @@ from .database import *
 
 def load_config():
     """
-    Load the application configuration from the 'config.json' file.
+    Load the application configuration from the 'alerts_config.json' file.
 
     Returns:
         dict: The configuration data as a dictionary.
@@ -66,7 +66,7 @@ def config():
 
         try:
             # Save updated configuration to the file
-            config_path = os.path.join(os.getcwd(), 'config.json')
+            config_path = os.path.join(os.getcwd(), 'alerts_config.json')
             with open(config_path, 'w') as file:
                 json.dump(config_data, file, indent=4)
         except Exception as e:
